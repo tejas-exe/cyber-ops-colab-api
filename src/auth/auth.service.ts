@@ -12,10 +12,11 @@ export class AuthService {
             emails: user.email
         }
         const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
-            expiresIn: '15m'
+            expiresIn: (process.env.ACCESS_EXPIRE_TIME || "7m") as any
         })
+
         const refreshToken = jwt.sign(payload, process.env.JWT_SECRET!, {
-            expiresIn: '7d'
+            expiresIn: (process.env.REFRESH_EXPIRE_TIME || "14d") as any
         })
         return { accessToken, refreshToken }
     }
@@ -62,7 +63,7 @@ export class AuthService {
     //!  
     verifyRefreshToken(token: string) {
         try {
-            return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as {
+            return jwt.verify(token, process.env.JWT_SECRET!) as {
                 sub: string;
                 email: string;
             };
