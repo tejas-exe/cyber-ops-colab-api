@@ -17,14 +17,31 @@ export class ChatGateway {
   }
 
   handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
+    client.rooms.forEach(room => {
+      if (room !== client.id) {
+        client.leave(room);
+        console.log(`Client ${client.id} left room ${room}`);
+      }
+    });
+  }
+
+  @SubscribeMessage("join-room")
+  async hangelClientRoomJoin(client: Socket, payload: any) {
+    client.join(payload.workSpaceId);
+    client.emit('joined-room', { workSpaceId: `room-${payload.workSpaceId}` });
+  }
+
+  @SubscribeMessage("leave-room")
+  async hangelClientRoomLeave(client: Socket, payload: any) {
+    client.leave(payload.workSpaceId);
+    client.emit('left-room', { workSpaceId: `room-${payload.workSpaceId}` });
   }
 
   @SubscribeMessage("sent-message")
   async handeleMessage(client: Socket, payload: any) {
     try {
       await this.chatService.saveMessage(payload.text, payload.authorId, payload.workSpaceId);
-      this.server.emit("received-message", payload);
+      this.server.to(`room-${payload.workSpaceId}`).emit("received-message", payload);
     } catch (error) {
       console.error("Error in handeleMessage:", error);
     }
@@ -33,7 +50,7 @@ export class ChatGateway {
   async loadMessages(client: Socket, payload: any) {
     try {
       const messages = await this.chatService.getMessages(payload.workSpaceId);
-      client.emit("all-messages", messages);
+      client.to(`room-${payload.workSpaceId}`).emit("all-messages", messages);
     } catch (error) {
       console.error("Error in loadMessages:", error);
     }
