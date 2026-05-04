@@ -34,8 +34,8 @@ export class MessageService {
                 workspaceId: workSpaceId,
                 deletedAt: null,
             },
-            skip: Number(skip),
-            take: Number(limit),
+            // skip: Number(skip),
+            // take: Number(limit),
             orderBy: {
                 createdAt: 'asc',
             },
