@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { UserModule } from './user/user.module';
+import { ChatGateway } from './chat/chat.gateway';
+import { RedisModule } from './redis/redis.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -18,8 +21,10 @@ import { UserModule } from './user/user.module';
     AuthModule,
     WorkspaceModule,
     UserModule,
+    RedisModule,
+    MessageModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ChatGateway],
 })
 export class AppModule { }
