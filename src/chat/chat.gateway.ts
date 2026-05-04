@@ -50,7 +50,7 @@ export class ChatGateway {
   async loadMessages(client: Socket, payload: any) {
     try {
       const messages = await this.chatService.getMessages(payload.workSpaceId);
-      client.to(`room-${payload.workSpaceId}`).emit("all-messages", messages);
+      client.emit("all-messages", messages);
     } catch (error) {
       console.error("Error in loadMessages:", error);
     }
