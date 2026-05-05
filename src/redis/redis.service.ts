@@ -6,7 +6,7 @@ export class RedisService {
     private client: Redis;
     constructor() {
         this.client = new Redis({
-            host: 'localhost',
+            host: process.env.REDIS_HOST || 'localhost',
             port: Number(process.env.REDIS_PORT) || 6379,
         });
     }
