@@ -4,45 +4,44 @@ generator client {
 
 datasource db {
   provider     = "postgresql"
-  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 model User {
-  id          String            @id @default(uuid())
-  email       String            @unique
-  name        String?
-  provider    String            @default("google")
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  workspaces  Workspace[]
-  memberOf    WorkspaceMember[]
-  analyses    Analysis[]
-  chats       Chats[]
+  id         String            @id @default(uuid())
+  email      String            @unique
+  name       String?
+  provider   String            @default("google")
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  workspaces Workspace[]
+  memberOf   WorkspaceMember[]
+  analyses   Analysis[]
+  chats      Chats[]
 }
 
 model Workspace {
   id          String            @id @default(uuid())
-  name        String
   createdById String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+  name        String
   createdBy   User              @relation(fields: [createdById], references: [id])
   members     WorkspaceMember[]
   analyses    Analysis[]
   chats       Chats[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  deletedAt   DateTime?
 }
 
 model WorkspaceMember {
   id          String    @id @default(uuid())
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, workspaceId])
 }
@@ -50,23 +49,23 @@ model WorkspaceMember {
 model Analysis {
   id          String    @id @default(uuid())
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
   loggedById  String
-  loggedBy    User      @relation(fields: [loggedById], references: [id])
   response    Json
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  loggedBy    User      @relation(fields: [loggedById], references: [id])
 }
 
 model Chats {
   id          String    @id @default(uuid())
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
   message     String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 }
