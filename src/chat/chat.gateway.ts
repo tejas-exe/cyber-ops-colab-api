@@ -51,8 +51,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @SubscribeMessage("join-room")
   async hangelClientRoomJoin(client: Socket, payload: any) {
-    client.join(payload.workSpaceId);
-    client.emit('joined-room', { workSpaceId: `room-${payload.workSpaceId}` });
+    client.join(`room-${payload.workSpaceId}`);
+    client.emit('joined-room', { workSpaceId: `${payload.workSpaceId}` });
   }
 
   /**
@@ -63,7 +63,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @SubscribeMessage("leave-room")
   async hangelClientRoomLeave(client: Socket, payload: any) {
-    client.leave(payload.workSpaceId);
+    client.leave(`room-${payload.workSpaceId}`)
     client.emit('left-room', { workSpaceId: `room-${payload.workSpaceId}` });
   }
 
@@ -135,17 +135,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage("video-offer")
   async handelVideoOffer(client: Socket, payload: any) {
-    this.server.to(`video-${payload.workSpaceId}`).emit("video-offer", payload)
+    this.server.to(payload.to).emit("video-offer", payload)
   }
 
   @SubscribeMessage("video-answer")
   async handelVideoAnswer(client: Socket, payload: any) {
-    this.server.to(`video-${payload.workSpaceId}`).emit("video-answer", payload)
+    this.server.to(payload.to).emit("video-answer", payload)
   }
 
   @SubscribeMessage("video-ice-candidate")
   async handelVideoIceCandidate(client: Socket, payload: any) {
-    this.server.to(`video-${payload.workSpaceId}`).emit("video-ice-candidate", payload)
+    this.server.to(payload.to).emit("video-ice-candidate", payload)
   }
 
 
