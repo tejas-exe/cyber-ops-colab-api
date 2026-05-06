@@ -1,0 +1,36 @@
+[INFO] 2026-04-17 10:15:32 Service started successfully
+
+[WARN] 2026-04-17 10:16:02 OpenSSL library outdated detected
+Details: Potential buffer overflow vulnerability CVE-2024-1234
+
+[ERROR] 2026-04-17 10:17:45 Unauthorized access attempt blocked
+Source IP: 192.168.1.45
+
+[INFO] 2026-04-17 10:18:10 System scan initiated
+
+[CRITICAL] 2026-04-17 10:19:22 Apache Struts vulnerability detected CVE-2023-50164
+Description: Remote code execution risk
+
+[WARN] 2026-04-17 10:20:01 Deprecated package in use: log4j-core
+Related vulnerability: CVE-2021-44228
+
+[INFO] 2026-04-17 10:21:33 Database connection stable
+
+[ERROR] 2026-04-17 10:22:11 Memory corruption issue detected
+Possible link: CVE-2022-22965
+
+[WARN] 2026-04-17 10:23:44 nginx misconfiguration detected
+No CVE found but security risk present
+
+[CRITICAL] 2026-04-17 10:24:55 Linux kernel vulnerability CVE-2023-32233 detected
+Exploit may allow privilege escalation
+
+[INFO] 2026-04-17 10:25:30 Background jobs running
+
+[WARN] 2026-04-17 10:26:12 Outdated Node.js dependency found
+Related: CVE-2023-23918
+
+[ERROR] 2026-04-17 10:27:50 Suspicious payload detected in request body
+
+[INFO] 2026-04-17 10:28:05 Scan completed with warnings and critical issues
+
