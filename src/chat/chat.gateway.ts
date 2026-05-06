@@ -99,27 +99,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  //_______________________________________________________________________
-
-  @SubscribeMessage("video-offer")
-  async handelVideoOffer(client: Socket, payload: any) {
-    this.server.to(payload.workSpaceId).emit("video-offer", payload)
-  }
-
-  @SubscribeMessage("video-answer")
-  async handelVideoAnswer(client: Socket, payload: any) {
-    this.server.to(payload.workSpaceId).emit("video-answer", payload)
-  }
-
-  @SubscribeMessage("video-ice-candidate")
-  async handelVideoIceCandidate(client: Socket, payload: any) {
-    this.server.to(payload.workSpaceId).emit("video-ice-candidate", payload)
-  }
-  //_______________________________________________________________________
+  //__________________________________________________________________________________________
 
   @SubscribeMessage("video-join")
   async handelVideoJoin(client: Socket, payload: any) {
-    const sockets = await this.server.in(payload.workSpaceId).fetchSockets();
+
+    const sockets = await this.server.in(`video-${payload.workSpaceId}`).fetchSockets();
 
     const peerCount = sockets.length;
 
@@ -142,18 +127,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit("video-existing-peers", existingPeers);
 
     // Notify others
-    client.to(payload.workSpaceId).emit("video-peer-joined", {
+    client.to(`video-${payload.workSpaceId}`).emit("video-peer-joined", {
       socketId: client.id,
       userId: payload.userId,
     });
   }
 
+  @SubscribeMessage("video-offer")
+  async handelVideoOffer(client: Socket, payload: any) {
+    this.server.to(`video-${payload.workSpaceId}`).emit("video-offer", payload)
+  }
+
+  @SubscribeMessage("video-answer")
+  async handelVideoAnswer(client: Socket, payload: any) {
+    this.server.to(`video-${payload.workSpaceId}`).emit("video-answer", payload)
+  }
+
+  @SubscribeMessage("video-ice-candidate")
+  async handelVideoIceCandidate(client: Socket, payload: any) {
+    this.server.to(`video-${payload.workSpaceId}`).emit("video-ice-candidate", payload)
+  }
+
+
+
   @SubscribeMessage("video-leave")
   async handelVideoLeave(client: Socket, payload: any) {
     const workSpaceId = client.data?.workSpaceId;
     if (workSpaceId) {
-      client.leave(workSpaceId);
-      client.to(workSpaceId).emit("video-peer-left", {
+      client.leave(`video-${workSpaceId}`);
+      client.to(`video-${workSpaceId}`).emit("video-peer-left", {
         socketId: client.id,
         userId: client.data?.userId,
       });
