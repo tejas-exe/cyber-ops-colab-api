@@ -4,9 +4,9 @@ import { AuthService } from './auth.service';
 import type { Request, Response } from 'express';
 
 const COOKIE_OPTIONS = (maxAge: number) => ({
-    httpOnly: true,                                      // JS can't read it
-    secure: process.env.NODE_ENV === 'production',       // HTTPS only in prod
-    sameSite: 'lax' as const,
+    httpOnly: true,
+    secure: true, // Must be true for sameSite: 'none'
+    sameSite: 'none' as const,
     maxAge,
 })
 

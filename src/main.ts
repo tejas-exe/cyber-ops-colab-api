@@ -9,6 +9,8 @@ async function bootstrap() {
   app.use(express.json({ limit: '50mb' }));
   app.use(cookieParser());
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
+  // Trust proxy for secure cookies on Render/Vercel
+  (app.getHttpAdapter().getInstance() as any).set('trust proxy', 1);
   const rawAllowedOrigins = process.env.ALLOWED_ORIGINS || '*';
   const allowedOrigins = rawAllowedOrigins
     .split(',')
