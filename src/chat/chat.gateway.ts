@@ -44,18 +44,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Handles the 'join-room' event.
-   * Allows a client to join a specific workspace room.
-   * @param client The socket instance of the client.
-   * @param payload Contains the workSpaceId to join.
-   */
-  @SubscribeMessage("join-room")
-  async hangelClientRoomJoin(client: Socket, payload: any) {
-    client.join(`room-${payload.workSpaceId}`);
-    client.emit('joined-room', { workSpaceId: `${payload.workSpaceId}` });
-  }
-
-  /**
    * Handles the 'leave-room' event.
    * Allows a client to leave a specific workspace room.
    * @param client The socket instance of the client.
@@ -161,4 +149,57 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
   }
+  //__________________________________________________________
+
+  /**
+   * Handles the 'join-room' event.
+   * Allows a client to join a specific workspace room.
+   * @param client The socket instance of the client.
+   * @param payload Contains the workSpaceId to join.
+   */
+  @SubscribeMessage("join-room")
+  async hangelClientRoomJoin(client: Socket, payload: any) {
+    try {
+      // check if space is available in room 
+
+      const sockets = await this.server.in(`video-${payload.workSpaceId}`).fetchSockets();
+
+      // if not give error 
+      if (sockets.length > 5) {
+        client.emit("room-full")
+      }
+
+      // initially when the user arives make the user join a room
+      await client.join(`video-${payload.workSpaceId}`);
+
+      // getting the count after user joined 
+      const particepents = (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length;
+
+      //tell existing user some one joins
+      client.broadcast.to(`video-${payload.workSpaceId}`).emit("user-joined", { userId: payload.userId })
+
+      //simalylarly updating the participents count 
+      // ---------------------- 
+      // // tell the whole room
+      // client.broadcast.to(`video-${payload.workSpaceId}`).emit("online-user-count", { particepents })
+      // // thell the individual as well
+      // client.emit("online-user-count", { particepents })
+      // ---------------------- 
+      //  to simplify the above  to all (! server(whole) and client are different(to only one))
+      this.server.to(`video-${payload.workSpaceId}`).emit("online-user-count", { particepents })
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  @SubscribeMessage("leave-room")
+  async handelLeaveRoom(client: Socket, payload: any) {
+    // make the client leave the room
+    await client.leave(`video-${payload.workSpaceId}`);
+    // getting the updated user count
+    const particepents = (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length;
+    // in the jus need to tell other you have left 
+    this.server.to(`video-${payload.workSpaceId}`).emit("online-user-count", { particepents })
+
+  }
+
 }
