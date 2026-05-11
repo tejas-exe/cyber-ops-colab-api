@@ -25,9 +25,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Triggered when a new client connects to the WebSocket server.
    * @param client The socket instance of the connected client.
    */
-  handleConnection(client: Socket) {
-    console.log('Client connected:', client.id);
-  }
+  handleConnection(client: Socket) { }
 
   /**
    * Triggered when a client disconnects from the WebSocket server.
@@ -41,6 +39,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         console.log(`Client ${client.id} left room ${room}`);
       }
     });
+  }
+
+  /**
+   * Handles the 'join-room' event.
+   * Allows a client to join a specific workspace room.
+   * @param client The socket instance of the client.
+   * @param payload Contains the workSpaceId to join.
+   */
+  @SubscribeMessage("join-room")
+  async hangelClientRoomJoin(client: Socket, payload: any) {
+    client.join(`room-${payload.workSpaceId}`);
+    client.emit('joined-room', { workSpaceId: `${payload.workSpaceId}` });
   }
 
   /**
@@ -149,24 +159,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
   }
-  //__________________________________________________________
 
+  //*****************************************************************************************
   /**
    * Handles the 'join-room' event.
    * Allows a client to join a specific workspace room.
    * @param client The socket instance of the client.
    * @param payload Contains the workSpaceId to join.
    */
-  @SubscribeMessage("join-room")
-  async hangelClientRoomJoin(client: Socket, payload: any) {
-    try {
-      // check if space is available in room 
 
+  @SubscribeMessage("join-video-room")
+  async hangelClientVideoRoomJoin(client: Socket, payload: any) {
+    try {
+
+      console.log("One user joined", payload)
+      console.log("With work space id ", payload.workSpaceId);
+      console.log("with socket id", client.id)
+
+      // check if space is available in room 
       const sockets = await this.server.in(`video-${payload.workSpaceId}`).fetchSockets();
 
       // if not give error 
-      if (sockets.length > 5) {
+      if (sockets.length >= 5) {
         client.emit("room-full")
+        return
       }
 
       // initially when the user arives make the user join a room
@@ -191,10 +207,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(error);
     }
   }
-  @SubscribeMessage("leave-room")
+  @SubscribeMessage("leave-video-room")
   async handelLeaveRoom(client: Socket, payload: any) {
-    // make the client leave the room
+    console.log("user left room");
+    console.log("with room id", `video-${payload.workSpaceId}`);
+    console.log("with socket id", client.id)
+
+    console.log(
+      "before leave",
+      (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length
+    );
+
     await client.leave(`video-${payload.workSpaceId}`);
+
+    console.log(
+      "after leave",
+      (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length
+    );
     // getting the updated user count
     const particepents = (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length;
     // in the jus need to tell other you have left 
