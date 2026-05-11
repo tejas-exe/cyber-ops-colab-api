@@ -203,6 +203,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // ---------------------- 
       //  to simplify the above  to all (! server(whole) and client are different(to only one))
       this.server.to(`video-${payload.workSpaceId}`).emit("online-user-count", { particepents })
+      this.server.to(`room-${payload.workSpaceId}`).emit("on-call-active", {
+        status: true,
+        workSpaceId: payload.workSpaceId
+      });
     } catch (error) {
       console.log(error);
     }
@@ -228,6 +232,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const particepents = (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length;
     // in the jus need to tell other you have left 
     this.server.to(`video-${payload.workSpaceId}`).emit("online-user-count", { particepents })
+    this.server.to(`room-${payload.workSpaceId}`).emit("on-call-active", {
+      status: particepents == 0 ? false : true,
+      workSpaceId: payload.workSpaceId
+    });
 
   }
 
