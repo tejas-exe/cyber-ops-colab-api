@@ -41,6 +41,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  // ── Chat ──────────────────────────────────────────────────────────────────
+
   /**
    * Handles the 'join-room' event.
    * Allows a client to join a specific workspace room.
@@ -96,71 +98,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.error("Error in loadMessages:", error);
     }
   }
-
-  //__________________________________________________________________________________________
-
-  @SubscribeMessage("video-join")
-  async handelVideoJoin(client: Socket, payload: any) {
-
-    const sockets = await this.server.in(`video-${payload.workSpaceId}`).fetchSockets();
-
-    const peerCount = sockets.length;
-
-    if (peerCount > 5) {
-      client.emit('video-room-full', { workSpaceId: payload.workSpaceId });
-      return;
-    }
-    client.join(`video-${payload.workSpaceId}`)
-
-    // Save user info
-    client.data.userId = payload.userId;
-    client.data.workSpaceId = payload.workSpaceId;
-
-    // Send existing peers to new user
-    const existingPeers = sockets.map((s) => ({
-      socketId: s.id,
-      userId: s.data?.userId,
-    }));
-
-    client.emit("video-existing-peers", existingPeers);
-
-    // Notify others
-    client.to(`video-${payload.workSpaceId}`).emit("video-peer-joined", {
-      socketId: client.id,
-      userId: payload.userId,
-    });
-  }
-
-  @SubscribeMessage("video-offer")
-  async handelVideoOffer(client: Socket, payload: any) {
-    this.server.to(payload.to).emit("video-offer", payload)
-  }
-
-  @SubscribeMessage("video-answer")
-  async handelVideoAnswer(client: Socket, payload: any) {
-    this.server.to(payload.to).emit("video-answer", payload)
-  }
-
-  @SubscribeMessage("video-ice-candidate")
-  async handelVideoIceCandidate(client: Socket, payload: any) {
-    this.server.to(payload.to).emit("video-ice-candidate", payload)
-  }
-
-
-
-  @SubscribeMessage("video-leave")
-  async handelVideoLeave(client: Socket, payload: any) {
-    const workSpaceId = client.data?.workSpaceId;
-    if (workSpaceId) {
-      client.leave(`video-${workSpaceId}`);
-      client.to(`video-${workSpaceId}`).emit("video-peer-left", {
-        socketId: client.id,
-        userId: client.data?.userId,
-      });
-    }
-  }
-
-  //*****************************************************************************************
+  // ── Video ──────────────────────────────────────────────────────────────────
   /**
    * Handles the 'join-room' event.
    * Allows a client to join a specific workspace room.
@@ -237,5 +175,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { ans, to } = payload
     if (!to) return
     this.server.to(to).emit("offer-accepted", { ans, from: client.id })
+  }
+
+  @SubscribeMessage('ice-candidate')
+  async handleIceCandidate(client: Socket, payload: any) {
+    const { to, candidate, workSpaceId } = payload;
+    if (to) {
+      this.server.to(to).emit('ice-candidate', {
+        candidate,
+        from: client.id,
+      });
+    } else if (workSpaceId) {
+      client.broadcast.to(`video-${workSpaceId}`).emit('ice-candidate', {
+        candidate,
+        from: client.id,
+      });
+    }
   }
 }
