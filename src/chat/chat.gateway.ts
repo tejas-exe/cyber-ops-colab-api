@@ -223,13 +223,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage("call-offer")
   async handelVCoffer(client: Socket, payload: any) {
     const { workSpaceId, offer, userId } = payload
-    const from = userId
-    client.broadcast.to(`video-${payload.workSpaceId}`).emit("incoming-offer", { from, workSpaceId, offer })
+    const from = client.id
+    client.broadcast.to(`video-${payload.workSpaceId}`).emit("incoming-offer", {
+      from,
+      fromUserId: userId,
+      workSpaceId,
+      offer
+    })
   }
 
   @SubscribeMessage("offer-accepted")
-  async handleOfferAccepted(client : Socket , payload :any){
-    const {ans , workSpaceId} = payload
-    client.emit("offer-accepted" , {ans})
+  async handleOfferAccepted(client: Socket, payload: any) {
+    const { ans, to } = payload
+    if (!to) return
+    this.server.to(to).emit("offer-accepted", { ans, from: client.id })
   }
 }
