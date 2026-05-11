@@ -171,11 +171,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage("join-video-room")
   async hangelClientVideoRoomJoin(client: Socket, payload: any) {
     try {
-
-      console.log("One user joined", payload)
-      console.log("With work space id ", payload.workSpaceId);
-      console.log("with socket id", client.id)
-
       // check if space is available in room 
       const sockets = await this.server.in(`video-${payload.workSpaceId}`).fetchSockets();
 
@@ -213,21 +208,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
   @SubscribeMessage("leave-video-room")
   async handelLeaveRoom(client: Socket, payload: any) {
-    console.log("user left room");
-    console.log("with room id", `video-${payload.workSpaceId}`);
-    console.log("with socket id", client.id)
-
-    console.log(
-      "before leave",
-      (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length
-    );
-
     await client.leave(`video-${payload.workSpaceId}`);
-
-    console.log(
-      "after leave",
-      (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length
-    );
     // getting the updated user count
     const particepents = (await this.server.in(`video-${payload.workSpaceId}`).fetchSockets()).length;
     // in the jus need to tell other you have left 
@@ -239,4 +220,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   }
 
+  @SubscribeMessage("call-offer")
+  async handelVCoffer(client: Socket, payload: any) {
+    const { workSpaceId, offer, userId } = payload
+    const from = userId
+    client.broadcast.to(`video-${payload.workSpaceId}`).emit("incoming-offer", { from, workSpaceId, offer })
+  }
+
+  @SubscribeMessage("offer-accepted")
+  async handleOfferAccepted(client : Socket , payload :any){
+    const {ans , workSpaceId} = payload
+    client.emit("offer-accepted" , {ans})
+  }
 }
